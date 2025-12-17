@@ -1,23 +1,30 @@
-// src/utils/motivation.ts
+import { GoogleGenAI } from "@google/genai";
 
-export async function fetchMotivation(reps: number): Promise<string> {
+const ai = new GoogleGenAI({
+  apiKey: import.meta.env.VITE_GEMINI_API_KEY,   
+});
+
+export async function getMotivationMessage(reps: number): Promise<string> {
   try {
-    const response = await fetch("https://api.gemini.ai/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        prompt: `Give a short motivational message for completing ${reps} exercise reps`,
-        max_tokens: 50,
-      }),
+    const prompt = `
+      Generate a short, powerful, motivational one-liner (2-5 words) celebrating
+      the completion of ${reps} reps. 
+      It should feel like a fitness trainer speaking.
+      Please give only one message. No stars or anything needed. 
+      Just plain message with puntuation wherever needed.
+    `;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
     });
 
-    const data = await response.json();
-    return data.text || "Keep going! 💪";
-  } catch (err) {
-    console.error("Gemini API error:", err);
-    return "Keep pushing! 💪";
+
+    const text = response.text || "Great job! Keep pushing!";
+    return text;
+
+  } catch (error) {
+    console.error("Gemini Error:", error);
+    return "Great job! Keep pushing!";
   }
 }

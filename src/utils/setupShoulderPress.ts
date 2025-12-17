@@ -52,21 +52,21 @@ export function setupShoulderPress(
         lineWidth: 2,
       });
 
-      // LEFT ARM landmarks
+   
       const leftShoulder = results.poseLandmarks[11];
       const leftElbow = results.poseLandmarks[13];
       const leftWrist = results.poseLandmarks[15];
 
-      // RIGHT ARM landmarks
+    
       const rightShoulder = results.poseLandmarks[12];
       const rightElbow = results.poseLandmarks[14];
       const rightWrist = results.poseLandmarks[16];
 
-      // Check vertical movement: elbows should go above shoulders
+
       const leftArmAbove = leftElbow.y < leftShoulder.y;
       const rightArmAbove = rightElbow.y < rightShoulder.y;
 
-      // Only count when both arms are raised
+  
       const armsUp = leftArmAbove && rightArmAbove;
 
       if (!armsUp) {
@@ -81,7 +81,7 @@ export function setupShoulderPress(
         setStage("Up");
       }
 
-      // Optional: show elbow angles for debugging
+ 
       const leftAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
       const rightAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
 

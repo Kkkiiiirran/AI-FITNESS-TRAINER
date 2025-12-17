@@ -50,10 +50,10 @@ export function setupSquats(
         lineWidth: 2,
       });
 
-      // LOWER BODY landmarks for squats
-      const hip = results.poseLandmarks[23];    // left hip
-      const knee = results.poseLandmarks[25];   // left knee
-      const ankle = results.poseLandmarks[27];  // left ankle
+
+      const hip = results.poseLandmarks[23];    
+      const knee = results.poseLandmarks[25];   
+      const ankle = results.poseLandmarks[27];  
 
       const angle = calculateAngle(
         { x: hip.x, y: hip.y },
@@ -61,14 +61,12 @@ export function setupSquats(
         { x: ankle.x, y: ankle.y }
       );
 
-      // --- Squat logic ---
-      // Standing straight
+
       if (angle > 160) {
         stage = "up";
         setStage("Up");
       }
 
-      // Squat position
       if (angle < 90 && stage === "up") {
         stage = "down";
         counter += 1;
@@ -76,7 +74,7 @@ export function setupSquats(
         setStage("Down");
       }
 
-      // (Optional) visualize angle
+  
       canvasCtx.fillStyle = "yellow";
       canvasCtx.font = "24px Arial";
       canvasCtx.fillText(`Angle: ${Math.round(angle)}`, knee.x * video.videoWidth, knee.y * video.videoHeight);

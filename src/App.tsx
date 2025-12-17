@@ -20,7 +20,7 @@ const App = () => (
           <Route path="/" element={<HomePage />} />
           <Route path="/exercises" element={<ExerciseSelection />} />
           <Route path="/exercise/:exerciseId" element={<ExercisePanel />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

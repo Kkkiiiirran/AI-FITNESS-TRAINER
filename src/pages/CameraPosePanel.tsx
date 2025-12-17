@@ -1,17 +1,24 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import Webcam from "react-webcam";
 
-// Import all exercise detectors
 import { setupBicepCurl } from "../utils/setupBicepCurl";
 import { setupSquats } from "../utils/setupSquats";
 import { setupShoulderPress } from "../utils/setupShoulderPress";
-// import { setupPushups } from "../utils/setupPushups";
-
+import {getMotivationMessage} from "../utils/motivation"
 interface CameraPosePanelProps {
   exerciseId: string;
   onCountChange: (n: number) => void;
   onStageChange: (s: string) => void;
 }
+
+const MILESTONES = [1, 3, 5, 10, 15, 20, 30, 40, 50, 60, 70];
+
+type SetupFn = (
+  videoRefObj: { current: HTMLVideoElement },
+  canvasRef: React.RefObject<HTMLCanvasElement>,
+  onCountChange: (n: number) => void,
+  onStageChange: (s: string) => void
+) => void;
 
 export default function CameraPosePanel({
   exerciseId,
@@ -20,9 +27,24 @@ export default function CameraPosePanel({
 }: CameraPosePanelProps) {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [motivation, setMotivation] = useState<string>("");
+
+
+  const speakMotivation = (text: string) => {
+    if (!window.speechSynthesis) return;
+
+ 
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 1;      
+    utterance.pitch = 1;     
+    window.speechSynthesis.speak(utterance);
+  };
 
   const handleUserMedia = () => {
-    const video = webcamRef.current?.video as HTMLVideoElement;
+    const video = webcamRef.current?.video;
     if (!video) return;
 
     video.onloadedmetadata = () => {
@@ -30,22 +52,30 @@ export default function CameraPosePanel({
 
       const videoRefObj = { current: video };
 
-      // 🔥 SWITCH BETWEEN EXERCISES
-      switch (exerciseId) {
-        case "bicep-curl":
-          setupBicepCurl(videoRefObj, canvasRef, onCountChange, onStageChange);
-          break;
+      const setupMap: Record<string, SetupFn> = {
+        "bicep-curl": setupBicepCurl,
+        squats: setupSquats,
+        "shoulder-press": setupShoulderPress,
+      };
 
-        case "squats":
-          setupSquats(videoRefObj, canvasRef, onCountChange, onStageChange);
-          break;
+      const setupFn = setupMap[exerciseId];
+      if (setupFn) {
+        setupFn(videoRefObj, canvasRef, async (n: number) => {
+          onCountChange(n);
 
-        case "shoulder-press":
-          setupShoulderPress?.(videoRefObj, canvasRef, onCountChange, onStageChange);
-          break;
-
-        default:
-          console.error("Unknown exercise:", exerciseId);
+          if (MILESTONES.includes(n)) {
+            try {
+              const msg = await getMotivationMessage(n);
+              console.log("AI Motivation:", msg);
+              setMotivation(msg);
+              speakMotivation(msg); 
+            } catch (error) {
+              console.error("Motivation fetch failed:", error);
+            }
+          }
+        }, onStageChange);
+      } else {
+        console.error("Unknown exercise:", exerciseId);
       }
     };
   };
@@ -63,6 +93,13 @@ export default function CameraPosePanel({
         ref={canvasRef}
         className="absolute inset-0 w-full h-full pointer-events-none"
       />
+
+    
+      {motivation && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-xl shadow-lg animate-bounce">
+          {motivation}
+        </div>
+      )}
     </div>
   );
 }

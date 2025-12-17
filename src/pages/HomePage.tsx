@@ -4,9 +4,10 @@ import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-fitness.jpg";
 
 const HomePage = () => {
+  
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
+      
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -26,9 +27,8 @@ const HomePage = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        {/* Background Image */}
+
         <div className="absolute inset-0 z-0">
           <img
             src={heroImage}
@@ -38,13 +38,13 @@ const HomePage = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/70 to-background" />
         </div>
 
-        {/* Floating Elements */}
+   
         <div className="absolute inset-0 z-0 overflow-hidden">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-float" />
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
         </div>
 
-        {/* Content */}
+
         <div className="container mx-auto px-4 z-10 text-center">
           <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold leading-tight">
@@ -72,7 +72,6 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
           <div className="w-6 h-10 border-2 border-primary rounded-full flex items-start justify-center p-2">
             <div className="w-1.5 h-3 bg-primary rounded-full animate-pulse-slow" />
@@ -80,7 +79,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+   
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12 animate-slide-up">

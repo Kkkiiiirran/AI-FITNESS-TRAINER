@@ -50,7 +50,7 @@ export function setupBicepCurl(
         lineWidth: 2,
       });
 
-      // LEFT ARM landmarks
+    
       const shoulder = results.poseLandmarks[11];
       const elbow = results.poseLandmarks[13];
       const wrist = results.poseLandmarks[15];
@@ -71,6 +71,7 @@ export function setupBicepCurl(
         counter += 1;
         setCounter(counter);
         setStage("Up");
+        
       }
     }
 
