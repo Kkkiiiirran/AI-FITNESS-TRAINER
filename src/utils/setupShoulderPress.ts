@@ -1,6 +1,3 @@
-import { Pose, POSE_CONNECTIONS, Results } from "@mediapipe/pose";
-import { Camera } from "@mediapipe/camera_utils";
-import * as draw from "@mediapipe/drawing_utils";
 import { calculateAngle } from "./calculateAngle";
 
 export function setupShoulderPress(
@@ -12,8 +9,9 @@ export function setupShoulderPress(
   let stage: "up" | "down" = "down";
   let counter = 0;
 
-  const pose = new Pose({
-    locateFile: (file) =>
+  // ✅ Global MediaPipe Pose
+  const pose = new (window as any).Pose({
+    locateFile: (file: string) =>
       `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
   });
 
@@ -24,49 +22,50 @@ export function setupShoulderPress(
     minTrackingConfidence: 0.7,
   });
 
-  pose.onResults((results: Results) => {
-    if (!canvasRef.current) return;
+  pose.onResults((results: any) => {
+    if (!canvasRef.current || !webcamRef.current) return;
 
-    const canvasCtx = canvasRef.current.getContext("2d");
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
     const video = webcamRef.current;
 
-    if (!canvasCtx || !video) return;
+    if (!ctx) return;
 
-    // Set canvas size
-    canvasRef.current.width = video.videoWidth;
-    canvasRef.current.height = video.videoHeight;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-    canvasCtx.save();
-    canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    canvasCtx.drawImage(results.image, 0, 0);
+    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
     if (results.poseLandmarks) {
-      // Draw skeleton
-      draw.drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {
-        color: "white",
-        lineWidth: 3,
-      });
+      // ✅ Draw skeleton (global drawing utils)
+      (window as any).drawConnectors(
+        ctx,
+        results.poseLandmarks,
+        (window as any).POSE_CONNECTIONS,
+        { color: "white", lineWidth: 3 }
+      );
 
-      draw.drawLandmarks(canvasCtx, results.poseLandmarks, {
+      (window as any).drawLandmarks(ctx, results.poseLandmarks, {
         color: "red",
         lineWidth: 2,
       });
 
-   
+      // Left arm
       const leftShoulder = results.poseLandmarks[11];
       const leftElbow = results.poseLandmarks[13];
       const leftWrist = results.poseLandmarks[15];
 
-    
+      // Right arm
       const rightShoulder = results.poseLandmarks[12];
       const rightElbow = results.poseLandmarks[14];
       const rightWrist = results.poseLandmarks[16];
 
-
+      // Shoulder press logic (arms above shoulders)
       const leftArmAbove = leftElbow.y < leftShoulder.y;
       const rightArmAbove = rightElbow.y < rightShoulder.y;
 
-  
       const armsUp = leftArmAbove && rightArmAbove;
 
       if (!armsUp) {
@@ -81,21 +80,22 @@ export function setupShoulderPress(
         setStage("Up");
       }
 
- 
+      // Angles (optional debug)
       const leftAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
       const rightAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
 
-      canvasCtx.fillStyle = "white";
-      canvasCtx.font = "18px Arial";
-      canvasCtx.fillText(`Left Angle: ${Math.round(leftAngle)}`, 10, 20);
-      canvasCtx.fillText(`Right Angle: ${Math.round(rightAngle)}`, 10, 40);
+      ctx.fillStyle = "white";
+      ctx.font = "18px Arial";
+      ctx.fillText(`Left Angle: ${Math.round(leftAngle)}`, 10, 20);
+      ctx.fillText(`Right Angle: ${Math.round(rightAngle)}`, 10, 40);
     }
 
-    canvasCtx.restore();
+    ctx.restore();
   });
 
+  // ✅ Global Camera
   if (webcamRef.current) {
-    const camera = new Camera(webcamRef.current, {
+    const camera = new (window as any).Camera(webcamRef.current, {
       onFrame: async () => {
         await pose.send({ image: webcamRef.current! });
       },

@@ -1,6 +1,3 @@
-import { Pose, POSE_CONNECTIONS, Results } from "@mediapipe/pose";
-import { Camera } from "@mediapipe/camera_utils";
-import * as draw from "@mediapipe/drawing_utils";
 import { calculateAngle } from "./calculateAngle";
 
 export function setupSquats(
@@ -12,8 +9,9 @@ export function setupSquats(
   let stage: "up" | "down" = "up";
   let counter = 0;
 
-  const pose = new Pose({
-    locateFile: (file) =>
+  // ✅ Global MediaPipe Pose
+  const pose = new (window as any).Pose({
+    locateFile: (file: string) =>
       `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
   });
 
@@ -24,36 +22,40 @@ export function setupSquats(
     minTrackingConfidence: 0.7,
   });
 
-  pose.onResults((results: Results) => {
-    if (!canvasRef.current) return;
+  pose.onResults((results: any) => {
+    if (!canvasRef.current || !webcamRef.current) return;
 
-    const canvasCtx = canvasRef.current.getContext("2d");
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
     const video = webcamRef.current;
 
-    if (!canvasCtx || !video) return;
+    if (!ctx) return;
 
-    canvasRef.current.width = video.videoWidth;
-    canvasRef.current.height = video.videoHeight;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-    canvasCtx.save();
-    canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    canvasCtx.drawImage(results.image, 0, 0);
+    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
     if (results.poseLandmarks) {
-      draw.drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {
-        color: "white",
-        lineWidth: 3,
-      });
+      // ✅ Draw pose skeleton
+      (window as any).drawConnectors(
+        ctx,
+        results.poseLandmarks,
+        (window as any).POSE_CONNECTIONS,
+        { color: "white", lineWidth: 3 }
+      );
 
-      draw.drawLandmarks(canvasCtx, results.poseLandmarks, {
+      (window as any).drawLandmarks(ctx, results.poseLandmarks, {
         color: "red",
         lineWidth: 2,
       });
 
-
-      const hip = results.poseLandmarks[23];    
-      const knee = results.poseLandmarks[25];   
-      const ankle = results.poseLandmarks[27];  
+      // Hip–knee–ankle (left leg)
+      const hip = results.poseLandmarks[23];
+      const knee = results.poseLandmarks[25];
+      const ankle = results.poseLandmarks[27];
 
       const angle = calculateAngle(
         { x: hip.x, y: hip.y },
@@ -61,7 +63,7 @@ export function setupSquats(
         { x: ankle.x, y: ankle.y }
       );
 
-
+      // ✅ Squat logic
       if (angle > 160) {
         stage = "up";
         setStage("Up");
@@ -74,17 +76,22 @@ export function setupSquats(
         setStage("Down");
       }
 
-  
-      canvasCtx.fillStyle = "yellow";
-      canvasCtx.font = "24px Arial";
-      canvasCtx.fillText(`Angle: ${Math.round(angle)}`, knee.x * video.videoWidth, knee.y * video.videoHeight);
+      // Angle display
+      ctx.fillStyle = "yellow";
+      ctx.font = "24px Arial";
+      ctx.fillText(
+        `Angle: ${Math.round(angle)}`,
+        knee.x * video.videoWidth,
+        knee.y * video.videoHeight
+      );
     }
 
-    canvasCtx.restore();
+    ctx.restore();
   });
 
+  // ✅ Global Camera
   if (webcamRef.current) {
-    const camera = new Camera(webcamRef.current, {
+    const camera = new (window as any).Camera(webcamRef.current, {
       onFrame: async () => {
         await pose.send({ image: webcamRef.current! });
       },
